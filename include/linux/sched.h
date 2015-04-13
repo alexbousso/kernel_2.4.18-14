@@ -451,6 +451,13 @@ struct task_struct {
 
 /* journalling filesystem info */
 	void *journal_info;
+/* Alex Tzoof and Shani*/
+	int is_defined_my_max;
+	int my_max;
+	int is_defined_child_max;
+	int child_max;
+	/*task_t *papa; /* The task from which I inherit the max_proc */
+	int tasks_count;
 };
 
 /*

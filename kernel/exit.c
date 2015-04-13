@@ -28,8 +28,17 @@ int getrusage(struct task_struct *, int, struct rusage *);
 
 static void release_task(struct task_struct * p)
 {
+	struct task_struct * tmp;
 	if (p == current)
 		BUG();
+	
+	/*shani*/
+	tmp = p->p_opptr;
+	while(tmp && tmp->pid >= 1){
+		tmp->tasks_count --;
+		tmp = tmp->p_opptr;
+	}
+	
 #ifdef CONFIG_SMP
 	wait_task_inactive(p);
 #endif
@@ -393,8 +402,8 @@ void exit_mm(struct task_struct *tsk)
  */
 static void exit_notify(void)
 {
-	struct task_struct * p, *t;
-
+	struct task_struct * p, *t , *tmp;
+	
 	forget_original_parent(current);
 	/*
 	 * Check to see if any process groups have become orphaned
@@ -448,6 +457,13 @@ static void exit_notify(void)
 	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
 	 */
 
+	 /*shani*/
+	tmp = current->p_opptr;
+	while(tmp && tmp->pid > 1){
+		tmp->tasks_count -= (current->tasks_count);
+		tmp = tmp->p_opptr;
+	}
+	 
 	write_lock_irq(&tasklist_lock);
 	current->state = TASK_ZOMBIE;
 	do_notify_parent(current, current->exit_signal);
@@ -482,6 +498,7 @@ static void exit_notify(void)
 			write_lock_irq(&tasklist_lock);
 		}
 	}
+	
 	write_unlock_irq(&tasklist_lock);
 }
 
