@@ -627,12 +627,14 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	              && !capable(CAP_SYS_ADMIN) && !capable(CAP_SYS_RESOURCE))
 		goto bad_fork_free;
 	
+	/*shani*/
 	tmp = current;
 	while(tmp && tmp->pid > 1){
 		if(tmp->is_defined_my_max && tmp->my_max <= tmp->tasks_count){
+			/*shaniprint*/ printk("\nparent my_max = %d, parent tasks_count = %d\n", tmp->my_max, tmp->tasks_count);
 			goto bad_fork_free;
 		}
-		tmp = tmp->p_opptr;
+		tmp = tmp->p_pptr;
 	}
 
 	atomic_inc(&p->user->__count);
@@ -776,19 +778,19 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 		list_add(&p->thread_group, &current->thread_group);
 	}
 	
-	/*Alex*/
+	/*alex*/
 	p->tasks_count = 0;
 	p->is_defined_child_max = 0;
 	if(p->pid == 1){/*init*/
 		p->is_defined_my_max = 0;
 	}
 	else {
-		struct task_struct *tmp = p->p_opptr;
+		struct task_struct *tmp = p->p_pptr;
 		
 		if(current->is_defined_child_max){
 			p->is_defined_my_max = 1;
 			p->my_max = current->child_max;
-			current->is_defined_child_max = 0;
+			/*current->is_defined_child_max = 0;*/
 		}
 		else {
 			p->is_defined_my_max = 0;
@@ -796,7 +798,7 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 		
 		while(tmp && tmp->pid > 1){
 			tmp->tasks_count++;
-			tmp = tmp->p_opptr;
+			tmp = tmp->p_pptr;
 		}
 	}
 	

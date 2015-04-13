@@ -8,8 +8,8 @@ int set_child_max_proc(int maxp) {
 		return 0;
 	}
 	if (current->is_defined_my_max && maxp >= current->my_max) {
-		current->is_defined_child_max = 0;
-		return -EPERM; // What to return?
+		/*current->is_defined_child_max = 0;*/
+		return -EPERM;
 	}
 	current->is_defined_child_max = 1;
 	current->child_max = maxp;

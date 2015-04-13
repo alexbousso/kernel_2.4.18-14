@@ -33,10 +33,10 @@ static void release_task(struct task_struct * p)
 		BUG();
 	
 	/*shani*/
-	tmp = p->p_opptr;
+	tmp = p->p_pptr;
 	while(tmp && tmp->pid >= 1){
 		tmp->tasks_count --;
-		tmp = tmp->p_opptr;
+		tmp = tmp->p_pptr;
 	}
 	
 #ifdef CONFIG_SMP
@@ -458,10 +458,10 @@ static void exit_notify(void)
 	 */
 
 	 /*shani*/
-	tmp = current->p_opptr;
+	tmp = current->p_pptr;
 	while(tmp && tmp->pid > 1){
 		tmp->tasks_count -= (current->tasks_count);
-		tmp = tmp->p_opptr;
+		tmp = tmp->p_pptr;
 	}
 	 
 	write_lock_irq(&tasklist_lock);
