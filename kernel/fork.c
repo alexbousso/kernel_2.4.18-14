@@ -631,7 +631,6 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	tmp = current;
 	while(tmp && tmp->pid > 1){
 		if(tmp->is_defined_my_max && tmp->my_max <= tmp->tasks_count){
-			/*shaniprint*/ printk("\nparent my_max = %d, parent tasks_count = %d\n", tmp->my_max, tmp->tasks_count);
 			goto bad_fork_free;
 		}
 		tmp = tmp->p_pptr;

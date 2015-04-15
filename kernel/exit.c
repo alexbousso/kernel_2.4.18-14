@@ -456,14 +456,7 @@ static void exit_notify(void)
 	 *	as a result of our exiting, and if they have any stopped
 	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
 	 */
-
-	 /*shani*/
-	tmp = current->p_pptr;
-	while(tmp && tmp->pid > 1){
-		tmp->tasks_count -= (current->tasks_count);
-		tmp = tmp->p_pptr;
-	}
-	 
+ 
 	write_lock_irq(&tasklist_lock);
 	current->state = TASK_ZOMBIE;
 	do_notify_parent(current, current->exit_signal);
@@ -505,6 +498,15 @@ static void exit_notify(void)
 NORET_TYPE void do_exit(long code)
 {
 	struct task_struct *tsk = current;
+	struct task_struct *tmp;
+	int currTasksCount = current->tasks_count;
+
+	/*shani*/
+	tmp = current->p_pptr;
+	while(currTasksCount && tmp && tmp->pid > 1){
+		tmp->tasks_count = tmp->tasks_count - currTasksCount;
+		tmp = tmp->p_pptr;
+	}
 
 	if (in_interrupt())
 		panic("Aiee, killing interrupt handler!");
