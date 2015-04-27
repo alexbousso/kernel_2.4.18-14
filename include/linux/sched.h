@@ -456,7 +456,10 @@ struct task_struct {
 	void *journal_info;
 
 /* alex */
-	
+	int is_overdue;
+	int timeslice_num;
+	int requested_time;
+	int trial_num;
 };
 
 /*

@@ -35,6 +35,7 @@ runCommand "cp -vf ${FROM}/kernel/Makefile ${TO}/kernel"
 runCommand "cp -vf ${FROM}/kernel/syscall_maxproc.c ${TO}/kernel"
 runCommand "cp -vf ${FROM}/arch/i386/kernel/entry.S ${TO}/arch/i386/kernel"
 runCommand "cp -vf ${FROM}/include/linux/sched.h ${TO}/include/linux"
+runCommand "cp -vf ${FROM}/kernel/sched.c ${TO}/kernel"
 
 # Compile kernel
 runCommand "cd ${KERNEL_SRC_DIR}"
