@@ -649,6 +649,10 @@ ENTRY(sys_call_table)
 	.long SYMBOL_NAME(sys_ni_syscall)	/* 240 reserved for futex */
 	.long SYMBOL_NAME(sys_sched_setaffinity)
 	.long SYMBOL_NAME(sys_sched_getaffinity)
+	.long SYMBOL_NAME(is_SHORT)		/* 243 */
+	.long SYMBOL_NAME(remaining_time)
+	.long SYMBOL_NAME(remaining_trials)
+	.long SYMBOL_NAME(get_scheduling_statistic)
 
 	.rept NR_syscalls-(.-sys_call_table)/4
 		.long SYMBOL_NAME(sys_ni_syscall)
