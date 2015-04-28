@@ -611,6 +611,7 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	if (!p)
 		goto fork_out;
 
+	/* alex - p is the son */
 	*p = *current;
 	p->tux_info = NULL;
 	p->cpus_allowed_mask &= p->cpus_allowed;
@@ -771,6 +772,32 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	hash_pid(p);
 	nr_threads++;
 	write_unlock_irq(&tasklist_lock);
+	
+	/* alex */
+	
+	/* TODO: need to update the remaining time of the short process */
+	p->is_overdue = current->is_overdue;
+	if (current->policy == SCHED_SHORT) {
+		p->policy = SCHED_SHORT;
+		p->timeslice_num = 1;
+		
+		p->requested_time = current->requested_time;
+		
+		p->remaining_time = current->remaining_time;
+		current->remaining_time /= 2;
+		p->remaining_time -= current->remaining_time;
+		
+		p->trial_num = current->trial_num;
+		current->trial_num /= 2;
+		p->trial_num -= current->trial_num;
+		
+		p->static_prio = current->static_prio;
+	} else {
+		p->timeslice_num = -1;
+		p->requested_time = -1;
+		p->trial_num = -1;
+		p->remaining_time = -1;
+	}
 
 	if (p->ptrace & PT_PTRACED)
 		send_sig(SIGSTOP, p, 1);
