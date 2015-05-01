@@ -1,8 +1,8 @@
 #include <linux/sched.h>
 #include <asm/errno.h>
 
-#define CHECK_TASK(arg) do { /
-		if (!arg || arg->policy != SCHED_SHORT) return EINVAL; /
+#define CHECK_TASK(arg) do { \
+		if (!arg || arg->policy != SCHED_SHORT) return EINVAL; \
 	} while(0)
 
 /**
