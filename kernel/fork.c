@@ -789,6 +789,7 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 		current->trial_num /= 2;
 		
 		p->static_prio = current->static_prio;
+		p->prio = p->static_prio;
 	} else {
 		p->timeslice_num = -1;
 		p->requested_time = -1;
