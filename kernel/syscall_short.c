@@ -2,7 +2,7 @@
 #include <asm/errno.h>
 
 #define CHECK_TASK(arg) do { \
-		if (!arg || arg->policy != SCHED_SHORT) return EINVAL; \
+		if (!arg || arg->policy != SCHED_SHORT) return -EINVAL; \
 	} while(0)
 
 /**
