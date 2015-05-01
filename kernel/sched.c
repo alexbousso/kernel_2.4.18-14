@@ -139,7 +139,7 @@ struct runqueue {
 	signed long nr_uninterruptible;
 	task_t *curr, *idle;
 	
-	/*changed*/
+	/*changed alex*/
 	prio_array_t *active, *expired, arrays[4];
 	prio_array_t *active_short, *overdue;
 	
@@ -725,6 +725,8 @@ static inline void idle_tick(void)
  * This function gets called by the timer code, with HZ frequency.
  * We call it with interrupts disabled.
  */
+ 
+ /*alex*/
 void scheduler_tick(int user_tick, int system)
 {
 	int cpu = smp_processor_id();
@@ -787,13 +789,13 @@ void scheduler_tick(int user_tick, int system)
 			set_tsk_need_resched(p);
 			p->first_time_slice = 0;
 			p->timeslice_num++;
-			if (--p->trial_num == 0){
+			p->time_slice = ((p->requested_time * HZ) / 1000) / p->timeslice_num;
+			if (--p->trial_num == 0 || !(p->time_slice)){
 				p->is_overdue = 1;
 				p->prio = 1;
 				enqueue_task(p, rq->overdue);
 			}
 			else {
-				p->time_slice = ((p->requested_time * HZ) / 1000) / p->timeslice_num;
 				enqueue_task(p, rq->active_short);
 			}
 		} 
