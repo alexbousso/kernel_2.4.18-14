@@ -871,20 +871,39 @@ pick_next_task:
 	}
 
 	array = rq->active;
+
 	if (unlikely(!array->nr_active)) {
-		/*
-		 * Switch the active and expired arrays.
-		 */
-		rq->active = rq->expired;
-		rq->expired = array;
-		array = rq->active;
-		rq->expired_timestamp = 0;
-	}
+		if (rp->expired->nr_active){
+			/*
+			 * Switch the active and expired arrays.
+			 */
+			rq->active = rq->expired;
+			rq->expired = array;
+			array = rq->active;
+			rq->expired_timestamp = 0;
+		}/*alex shani*/
+		else {
+			if (rp->active_short->nr_active){
+				array = rq->active_short;
+			}
+			else array = rq->overdue;
+		}
+	} // check short or overdue
 
 	idx = sched_find_first_bit(array->bitmap);
 	queue = array->queue + idx;
 	next = list_entry(queue->next, task_t, run_list);
-
+	
+	/*shani*/
+	if(next->policy == SCHED_OTHER){
+		if(rq->active_short->nr_active){
+			array = rq->active_short;
+			idx = sched_find_first_bit(array->bitmap);
+			queue = array->queue + idx;
+			next = list_entry(queue->next, task_t, run_list);
+		}
+	} // else, continue with the SCHED-OTHER process that you found
+	
 switch_tasks:
 	prefetch(next);
 	clear_tsk_need_resched(prev);
