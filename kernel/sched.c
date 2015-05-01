@@ -138,12 +138,14 @@ struct runqueue {
 	unsigned long nr_running, nr_switches, expired_timestamp;
 	signed long nr_uninterruptible;
 	task_t *curr, *idle;
-	prio_array_t *active, *expired, arrays[2];
+	
+	/*changed*/
+	prio_array_t *active, *expired, arrays[4];
+	prio_array_t *active_short, *overdue;
+	
 	int prev_nr_running[NR_CPUS];
 	task_t *migration_thread;
 	list_t migration_queue;
-	
-	prio_array_t *active_short, *expired_short;
 } ____cacheline_aligned;
 
 static struct runqueue runqueues[NR_CPUS] __cacheline_aligned;
@@ -257,7 +259,10 @@ static inline int effective_prio(task_t *p)
 static inline void activate_task(task_t *p, runqueue_t *rq)
 {
 	unsigned long sleep_time = jiffies - p->sleep_timestamp;
-	prio_array_t *array = rq->active;
+	unsigned long sleep_time = jiffies - p->sleep_timestamp;
+	
+	/*shani*/
+	prio_array_t *array = (p->policy == SCHED_SHORT ? rq->active_short : rq->active);
 
 	if (!rt_task(p) && sleep_time) {
 		/*
@@ -741,7 +746,10 @@ void scheduler_tick(int user_tick, int system)
 	kstat.per_cpu_system[cpu] += system;
 
 	/* Task might have expired already, but not scheduled off yet */
-	if (p->array != rq->active) {
+	if (p->array != rq->active && p->array != rq->active_short) {
+		if (p->array == rq->overdue){
+			return;
+		}
 		set_tsk_need_resched(p);
 		return;
 	}
@@ -773,18 +781,36 @@ void scheduler_tick(int user_tick, int system)
 	if (p->sleep_avg)
 		p->sleep_avg--;
 	if (!--p->time_slice) {
-		dequeue_task(p, rq->active);
-		set_tsk_need_resched(p);
-		p->prio = effective_prio(p);
-		p->first_time_slice = 0;
-		p->time_slice = TASK_TIMESLICE(p);
-
-		if (!TASK_INTERACTIVE(p) || EXPIRED_STARVING(rq)) {
-			if (!rq->expired_timestamp)
-				rq->expired_timestamp = jiffies;
-			enqueue_task(p, rq->expired);
-		} else
-			enqueue_task(p, rq->active);
+		/*changed*/
+		if (p->policy == SCHED_SHORT){
+			dequeue_task(p, rq->active_short);
+			set_tsk_need_resched(p);
+			p->first_time_slice = 0;
+			p->timeslice_num++;
+			if (--p->trial_num == 0){
+				p->is_overdue = 1;
+				p->prio = 1;
+				enqueue_task(p, rq->overdue);
+			}
+			else {
+				p->time_slice = ((p->requested_time * HZ) / 1000) / p->timeslice_num;
+				enqueue_task(p, rq->active_short);
+			}
+		} 
+		else {
+			dequeue_task(p, rq->active);
+			set_tsk_need_resched(p);
+			p->prio = effective_prio(p);
+			p->first_time_slice = 0;
+			p->time_slice = TASK_TIMESLICE(p);
+			
+			if (!TASK_INTERACTIVE(p) || EXPIRED_STARVING(rq)) {
+				if (!rq->expired_timestamp)
+					rq->expired_timestamp = jiffies;
+				enqueue_task(p, rq->expired);
+			} else
+				enqueue_task(p, rq->active);
+		}
 	}
 out:
 #if CONFIG_SMP
@@ -1625,10 +1651,15 @@ void __init sched_init(void)
 		rq = cpu_rq(i);
 		rq->active = rq->arrays;
 		rq->expired = rq->arrays + 1;
+		/* shani */
+		rq->active_short = rq->arrays + 2;
+		rq->overdue = rq->arrays + 3;
+		
 		spin_lock_init(&rq->lock);
 		INIT_LIST_HEAD(&rq->migration_queue);
 
-		for (j = 0; j < 2; j++) {
+		/*shani*/
+		for (j = 0; j < 4; j++) {
 			array = rq->arrays + j;
 			for (k = 0; k < MAX_PRIO; k++) {
 				INIT_LIST_HEAD(array->queue + k);
