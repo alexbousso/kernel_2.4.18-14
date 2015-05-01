@@ -904,7 +904,7 @@ pick_next_task:
 			queue = array->queue + idx;
 			next = list_entry(queue->next, task_t, run_list);
 		}
-	} // else, continue with the SCHED-OTHER process that you found
+	} // else, continue with the SCHED_OTHER process that you found
 	
 switch_tasks:
 	prefetch(next);
@@ -1200,7 +1200,26 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	read_lock_irq(&tasklist_lock);
 
 	p = find_process_by_pid(pid);
-
+	
+	/* alex is to blame */
+	if(policy == SCHED_SHORT && p->policy != SCHED_OTHER || policy != SCHED_SHORT && p->policy == SCHED_OTHER){
+		retval = -EINVAL;
+		goto out_unlock;
+	}
+	if(p->policy == SCHED_SHORT && policy == SCHED_SHORT){
+		if(lp.trial_num != p->trial_num){
+			retval = -EINVAL;
+			goto out_unlock;
+		}
+		p->requested_time = lp.requested_time;
+		deactivate_task(p, task_rq(p));
+		p->array = rq->active_short;
+		p->time_slice = (lp.requested_time*HZ)/1000;
+		activate_task(p, task_rq(p));
+		goto out_unlock;
+	}
+	/* end of change */
+	
 	retval = -ESRCH;
 	if (!p)
 		goto out_unlock_tasklist;
@@ -1227,9 +1246,11 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	retval = -EINVAL;
 	if (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1)
 		goto out_unlock;
-	if ((policy == SCHED_OTHER) != (lp.sched_priority == 0))
-		goto out_unlock;
-
+	if (policy != SCHED_SHORT){
+		if((policy == SCHED_OTHER) != (lp.sched_priority == 0))
+			goto out_unlock;
+	}
+	
 	retval = -EPERM;
 	if ((policy == SCHED_FIFO || policy == SCHED_RR) &&
 	    !capable(CAP_SYS_NICE))
@@ -1244,12 +1265,30 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	retval = 0;
 	p->policy = policy;
 	p->rt_priority = lp.sched_priority;
-	if (policy != SCHED_OTHER)
+	if (policy != SCHED_OTHER && policy != SCHED_SHORT)
 		p->prio = MAX_USER_RT_PRIO-1 - p->rt_priority;
 	else
 		p->prio = p->static_prio;
-	if (array)
+	if (array && policy != SCHED_SHORT)
 		activate_task(p, task_rq(p));
+		
+	/*alex*/
+	if(policy == SCHED_SHORT){
+		if(lp.trial_num > 50 || lp.trial_num < 1 || lp.requested_time < 1 || lp.requested_time > 5000){
+			retval = -EINVAL;
+			goto out_unlock;
+		}
+		p->policy = SCHED_SHORT;
+		p->timeslice_num = 1;
+		p->is_overdue = 0;
+		p->rt_priority = 0;
+		p->requested_time = lp.requested_time;
+		p->trial_num = lp.trial_num;
+		p->array = rq->active_short;
+		p->time_slice = (lp.requested_time*HZ)/1000;
+		activate_task(p, task_rq(p));
+	}
+	/*end of change*/
 
 out_unlock:
 	task_rq_unlock(rq, &flags);
