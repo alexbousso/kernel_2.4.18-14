@@ -775,7 +775,6 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	
 	/* alex */
 	
-	/* TODO: need to update the remaining time of the short process */
 	p->is_overdue = current->is_overdue;
 	if (current->policy == SCHED_SHORT) {
 		p->policy = SCHED_SHORT;
@@ -783,20 +782,17 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 		
 		p->requested_time = current->requested_time;
 		
-		p->remaining_time = current->remaining_time;
-		current->remaining_time /= 2;
-		p->remaining_time -= current->remaining_time;
+		p->time_slice = (current->time_slice +1)/2 ;
+		current->time_slice /= 2;
 		
-		p->trial_num = current->trial_num;
+		p->trial_num = (current->trial_num + 1) /2;
 		current->trial_num /= 2;
-		p->trial_num -= current->trial_num;
 		
 		p->static_prio = current->static_prio;
 	} else {
 		p->timeslice_num = -1;
 		p->requested_time = -1;
 		p->trial_num = -1;
-		p->remaining_time = -1;
 	}
 
 	if (p->ptrace & PT_PTRACED)
