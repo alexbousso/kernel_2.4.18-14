@@ -460,7 +460,6 @@ struct task_struct {
 	int timeslice_num;
 	int requested_time;
 	int trial_num;
-	int remaining_time;
 };
 
 /*
