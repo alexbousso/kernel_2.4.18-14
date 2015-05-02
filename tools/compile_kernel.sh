@@ -36,6 +36,10 @@ runCommand "cp -vf ${FROM}/kernel/syscall_short.c ${TO}/kernel"
 runCommand "cp -vf ${FROM}/arch/i386/kernel/entry.S ${TO}/arch/i386/kernel"
 runCommand "cp -vf ${FROM}/include/linux/sched.h ${TO}/include/linux"
 runCommand "cp -vf ${FROM}/kernel/sched.c ${TO}/kernel"
+runCommand "cp -vf ${FROM}/kernel/monitor_statistics.c ${TO}/kernel"
+runCommand "cp -vf ${FROM}/kernel/syscall_statistic.c ${TO}/kernel"
+runCommand "cp -vf ${FROM}/include/linux/monitor_statistics.h ${TO}/include/linux"
+
 
 # Compile kernel
 runCommand "cd ${KERNEL_SRC_DIR}"
