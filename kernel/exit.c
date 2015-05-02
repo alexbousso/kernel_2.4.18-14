@@ -21,6 +21,9 @@
 #include <asm/uaccess.h>
 #include <asm/pgtable.h>
 #include <asm/mmu_context.h>
+/*Tzoof*/
+extern int switches_since_last_task_created_or_died;
+extern int reason_for_switch;
 
 extern void sem_exit (void);
 extern struct task_struct *child_reaper;

@@ -1,6 +1,14 @@
 #include <linux/sched.h>
 #include <asm/errno.h>
 #include <linux/monitor_statistics.h>
+#include <asm/uaccess.h>
+
+
+extern struct switch_info MonitorArray[MAX_PROC_ARR_SZ];
+extern int last_cell;
+extern int first_cell;
+extern int finished_one_round;
+
 
 int get_scheduling_statistic(struct switch_info* input){
 	int cells_round1, cells_round2;
@@ -10,7 +18,7 @@ int get_scheduling_statistic(struct switch_info* input){
 		return -1;
 	}
 	if(!finished_one_round){
-		cells_round1 = last_cell - first cell;
+		cells_round1 = last_cell - first_cell;
 		cells_round2 = 0;
 	}else{
 		cells_round1 = MAX_PROC_ARR_SZ - first_cell;

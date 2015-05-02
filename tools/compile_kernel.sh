@@ -26,7 +26,7 @@ function runCommand {
 }
 
 # Copy modified files
-FROM="/mnt/hgfs/kernel_2.4.18-14"
+FROM="/mnt/hgfs/shared/HW1"
 TO="/usr/src/linux-2.4.18-14custom"
 
 runCommand "cp -vf ${FROM}/kernel/fork.c ${TO}/kernel"

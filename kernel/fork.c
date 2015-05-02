@@ -30,7 +30,9 @@
 #include <asm/pgalloc.h>
 #include <asm/uaccess.h>
 #include <asm/mmu_context.h>
-
+/*Tzoof*/
+extern int switches_since_last_task_created_or_died;
+extern int reason_for_switch;
 
 /* The idle threads do not count.. */
 int nr_threads;

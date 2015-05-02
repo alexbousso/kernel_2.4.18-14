@@ -37,7 +37,3 @@ int remaining_trials(int pid) {
 	return p->is_overdue ? 0 : p->trial_num;
 }
 
-int get_scheduling_statistic(struct switch_info *si) {
-
-}
-

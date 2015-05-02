@@ -27,6 +27,9 @@
 #include <linux/kernel_stat.h>
 #include <linux/monitor_statistics.h>
 
+/*Tzoof*/
+extern int switches_since_last_task_created_or_died;
+extern int reason_for_switch;
 /*
  * Convert user-nice values [ -20 ... 0 ... 19 ]
  * to static priority [ MAX_RT_PRIO..MAX_PRIO-1 ],
@@ -916,8 +919,9 @@ switch_tasks:
 	if (likely(prev != next)) {
 		rq->nr_switches++;
 		rq->curr = next;
+
 		/*Tzoof */
-		if(switches_since_last_task_created_or_died < 30){
+		if(switches_since_last_task_created_or_died < MAX_PROC_TO_ACTION){
 			insert_context_switch(prev->pid, next->pid, prev->policy, next->policy, jiffies, reason_for_switch);
 			switches_since_last_task_created_or_died ++;
 		}
