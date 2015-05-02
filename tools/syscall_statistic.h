@@ -1,6 +1,13 @@
 #include <errno.h>
-#include <linux/monitor_statistics.h>
 
+struct switch_info{
+	int previous_pid;
+	int next_pid;
+	int previous_policy;
+	int next_policy;
+	unsigned long time;
+	int reason;
+};
 
 int get_scheduling_statistic(struct switch_info* input){
 	long __res;

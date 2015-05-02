@@ -30,4 +30,8 @@ int get_scheduling_statistic(struct switch_info* input){
 	copy_to_user (input + first_cell, MonitorArray, size_round1);
 	copy_to_user (input, MonitorArray + size_round1, size_round2);
 	//copy_to_user(to, from, size in unsigned long)	
+	if(finished_one_round){
+		return MAX_PROC_ARR_SZ;
+	}
+	return (last_cell - first_cell + 1);
 }

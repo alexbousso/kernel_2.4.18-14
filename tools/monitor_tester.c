@@ -1,5 +1,4 @@
-#include 'syscall_short.h'
-#include 'syscall_statistic.h'
+#include "/mnt/hgfs/shared/HW1/tools/syscall_statistic.h"
 
 char* reason_txt(int num){
 	switch(num){
@@ -20,22 +19,17 @@ char* reason_txt(int num){
 	}
 }
 int main(){
+	int num_procs;
 	int i;
-	struct switch_info my_ptr[150] = malloc(sizeof(struct switch_info));
-	get_scheduling_statistic(my_ptr);
-	for(i=0; i<150; i++){
-		printf("previous_pid : %d, previous_policy: %d, next_pid : %d, next_policy : %d, time : %d , reason %s\n" my_ptr[i].previous_pid, my_ptr[i].previous_policy, my_ptr[i].next_pid,  my_ptr[i].next_policy, my_ptr[i].time, reason_txt(my_ptr[i].reason))
+	struct switch_info my_ptr[150];
+	num_procs = get_scheduling_statistic(my_ptr);
+	printf("num procs : %d\n", num_procs);
+	for(i=0; i<num_procs; i++){
+		printf("previous_pid : %d, previous_policy: %d, next_pid : %d, next_policy : %d, time : %d , reason : %s\n", 
+				my_ptr[i].previous_pid, my_ptr[i].previous_policy, my_ptr[i].next_pid, 
+				my_ptr[i].next_policy, my_ptr[i].time, reason_txt(my_ptr[i].reason));
 	}
-	free(my_ptr);
+	//free(my_ptr);
 
 	return 0;
 }
-
-struct switch_info{
-	int previous_pid;
-	int next_pid;
-	int previous_policy;
-	int next_policy;
-	unsigned long time;
-	int reason;
-};
