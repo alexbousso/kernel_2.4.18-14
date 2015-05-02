@@ -13,6 +13,7 @@
 #include <linux/personality.h>
 #include <linux/tty.h>
 #include <linux/namespace.h>
+#include <linux/monitor_statistics.h>
 #ifdef CONFIG_BSD_PROCESS_ACCT
 #include <linux/acct.h>
 #endif
@@ -526,6 +527,10 @@ fake_volatile:
 	if (tsk->binfmt && tsk->binfmt->module)
 		__MOD_DEC_USE_COUNT(tsk->binfmt->module);
 
+	/*Tzoof */	
+	switches_since_last_task_created_or_died = 0;
+	reason_for_switch = 2;
+	
 	tsk->exit_code = code;
 	exit_notify();
 	schedule();

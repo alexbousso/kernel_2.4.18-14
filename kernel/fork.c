@@ -23,11 +23,14 @@
 #include <linux/personality.h>
 #include <linux/compiler.h>
 #include <linux/mman.h>
+#include <linux/monitor_statistics.h>
+
 
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>
 #include <asm/uaccess.h>
 #include <asm/mmu_context.h>
+
 
 /* The idle threads do not count.. */
 int nr_threads;
@@ -774,6 +777,8 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	write_unlock_irq(&tasklist_lock);
 	
 	/* alex */
+	switches_since_last_task_created_or_died = 0;
+	reason_for_switch = 1;
 	
 	p->is_overdue = current->is_overdue;
 	if (current->policy == SCHED_SHORT) {

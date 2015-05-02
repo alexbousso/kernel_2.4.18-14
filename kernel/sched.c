@@ -25,6 +25,7 @@
 #include <linux/interrupt.h>
 #include <linux/completion.h>
 #include <linux/kernel_stat.h>
+#include <linux/monitor_statistics.h>
 
 /*
  * Convert user-nice values [ -20 ... 0 ... 19 ]
@@ -387,7 +388,8 @@ repeat_lock_task:
 	}
 	p->state = TASK_RUNNING;
 	task_rq_unlock(rq, &flags);
-
+	/*Tzoof*/
+	reason_for_switch = 6;
 	return success;
 }
 
@@ -471,7 +473,7 @@ static inline task_t * context_switch(task_t *prev, task_t *next)
 
 	/* Here we just switch the register state and the stack. */
 	switch_to(prev, next, prev);
-
+	
 	return prev;
 }
 
@@ -782,6 +784,7 @@ void scheduler_tick(int user_tick, int system)
 		p->sleep_avg--;
 	if (!--p->time_slice) {
 		/*changed*/
+		reason_for_switch = 7;
 		if (p->policy == SCHED_SHORT){
 			dequeue_task(p, rq->active_short);
 			set_tsk_need_resched(p);
@@ -792,6 +795,8 @@ void scheduler_tick(int user_tick, int system)
 				p->is_overdue = 1;
 				p->prio = 1;
 				enqueue_task(p, rq->overdue);
+				/*Tzoof*/
+				reason_for_switch = 4;
 			}
 			else {
 				enqueue_task(p, rq->active_short);
@@ -911,7 +916,12 @@ switch_tasks:
 	if (likely(prev != next)) {
 		rq->nr_switches++;
 		rq->curr = next;
-	
+		/*Tzoof */
+		if(switches_since_last_task_created_or_died < 30){
+			insert_context_switch(prev->pid, next->pid, prev->policy, next->policy, jiffies, reason_for_switch);
+			switches_since_last_task_created_or_died ++;
+		}
+		/*end*/
 		prepare_arch_switch(rq);
 		prev = context_switch(prev, next);
 		barrier();
@@ -1021,7 +1031,8 @@ void wait_for_completion(struct completion *x)
 #define	SLEEP_ON_HEAD					\
 	spin_lock_irqsave(&q->lock,flags);		\
 	__add_wait_queue(q, &wait);			\
-	spin_unlock(&q->lock);
+	spin_unlock(&q->lock);			\
+	reason_for_switch = 5;	/*Tzoof*/
 
 #define	SLEEP_ON_TAIL						\
 	spin_lock_irq(&q->lock);				\
@@ -1494,7 +1505,9 @@ asmlinkage long sys_sched_yield(void)
 
 out_unlock:
 	spin_unlock(&rq->lock);
-
+	/*Tzoof*/
+	reason_for_switch = 3;
+	
 	schedule();
 
 	return 0;
