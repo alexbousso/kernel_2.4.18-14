@@ -8,7 +8,7 @@ int is_SHORT(int pid) {
 	"int $0x80;"
 	"movl %%eax,%0"
 	: "=m" (__res) 		/* output operands */
-	: "m" (maxp)		/* input operands */
+	: "m" (pid)		/* input operands */
 	: "%eax","%ebx"		/* list of clobbered registers */
 	);
 	if ((unsigned long)(__res) >= (unsigned long)(-125)) {
@@ -25,7 +25,7 @@ int remaining_time(int pid) {
 	"int $0x80;"
 	"movl %%eax,%0"
 	: "=m" (__res)		/* output operands */
-	:			/* input operands */
+	: "m" (pid)		/* input operands */
 	: "%eax"		/* list of clobbered registers */
 	);
 	if ((unsigned long)(__res) >= (unsigned long)(-125)) {
@@ -43,7 +43,7 @@ int remaining_trials(int pid) {
 	"int $0x80;"
 	"movl %%eax,%0"
 	: "=m" (__res)		/* output operands */
-	:			/* input operands */
+	: "m" (pid)		/* input operands */
 	: "%eax"		/* list of clobbered registers */
 	);
 	if ((unsigned long)(__res) >= (unsigned long)(-125)) {
