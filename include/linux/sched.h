@@ -310,7 +310,15 @@ struct user_struct {
 	struct user_struct *next, **pprev;
 	uid_t uid;
 };
-
+/*Tzoof*/
+struct switch_info{
+	int previous_pid;
+	int next_pid;
+	int previous_policy;
+	int next_policy;
+	unsigned long time;
+	int reason;
+};
 #define get_current_user() ({ 				\
 	struct user_struct *__user = current->user;	\
 	atomic_inc(&__user->__count);			\
@@ -460,6 +468,9 @@ struct task_struct {
 	int timeslice_num;
 	int requested_time;
 	int trial_num;
+/*Tzoof*/
+	struct switch_info;
+
 };
 
 /*
