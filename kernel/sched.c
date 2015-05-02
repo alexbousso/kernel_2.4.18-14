@@ -1199,25 +1199,6 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 
 	p = find_process_by_pid(pid);
 	
-	/* alex is to blame */
-	if((policy == SCHED_SHORT && p->policy != SCHED_OTHER) || (policy != SCHED_SHORT && p->policy == SCHED_OTHER)){
-		retval = -EINVAL;
-		goto out_unlock;
-	}
-	if(p->policy == SCHED_SHORT && policy == SCHED_SHORT){
-		if(lp.trial_num != p->trial_num){
-			retval = -EINVAL;
-			goto out_unlock;
-		}
-		p->requested_time = lp.requested_time;
-		deactivate_task(p, task_rq(p));
-		p->array = rq->active_short;
-		p->time_slice = (lp.requested_time*HZ)/1000;
-		activate_task(p, task_rq(p));
-		goto out_unlock;
-	}
-	/* end of change */
-	
 	retval = -ESRCH;
 	if (!p)
 		goto out_unlock_tasklist;
@@ -1244,9 +1225,8 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	retval = -EINVAL;
 	if (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1)
 		goto out_unlock;
-	if (policy != SCHED_SHORT){
-		if((policy == SCHED_OTHER) != (lp.sched_priority == 0))
-			goto out_unlock;
+	if ((policy != SCHED_SHORT) && ((policy == SCHED_OTHER) != (lp.sched_priority == 0))){
+		goto out_unlock;
 	}
 	
 	retval = -EPERM;
@@ -1257,6 +1237,36 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	    !capable(CAP_SYS_NICE))
 		goto out_unlock;
 
+	/* alex is to blame */
+	retval = -EINVAL;
+	if ((policy == SCHED_SHORT) && (lp.trial_num > 50 || lp.trial_num < 1 || lp.requested_time < 1 || lp.requested_time > 5000)){
+		goto out_unlock;
+	}
+		
+	if((policy == SCHED_SHORT && p->policy != SCHED_OTHER) || (policy != SCHED_SHORT && p->policy == SCHED_SHORT)){
+		retval = -EINVAL;
+		goto out_unlock;
+	}
+	if(p->policy == SCHED_SHORT && policy == SCHED_SHORT){
+		if(lp.trial_num != p->trial_num){
+			retval = -EINVAL;
+			goto out_unlock;
+		}
+		retval = 0;
+		p->requested_time = lp.requested_time;
+		array = p->array;
+		if (array){
+			deactivate_task(p, task_rq(p));
+		}
+		p->time_slice = (lp.requested_time*HZ)/1000;
+		if (array){
+			activate_task(p, task_rq(p));
+		}
+		goto out_unlock;
+	}
+	/* end of change */
+	
+		
 	array = p->array;
 	if (array)
 		deactivate_task(p, task_rq(p));
@@ -1272,19 +1282,14 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 		
 	/*alex*/
 	if(policy == SCHED_SHORT){
-		if(lp.trial_num > 50 || lp.trial_num < 1 || lp.requested_time < 1 || lp.requested_time > 5000){
-			retval = -EINVAL;
-			goto out_unlock;
-		}
-		p->policy = SCHED_SHORT;
 		p->timeslice_num = 1;
 		p->is_overdue = 0;
 		p->rt_priority = 0;
 		p->requested_time = lp.requested_time;
 		p->trial_num = lp.trial_num;
-		p->array = rq->active_short;
 		p->time_slice = (lp.requested_time*HZ)/1000;
-		activate_task(p, task_rq(p));
+		if (array)
+			activate_task(p, task_rq(p));
 	}
 	/*end of change*/
 
@@ -1342,6 +1347,9 @@ asmlinkage long sys_sched_getparam(pid_t pid, struct sched_param *param)
 	if (!p)
 		goto out_unlock;
 	lp.sched_priority = p->rt_priority;
+	/*shani*/
+	lp.requested_time = p->requested_time;
+	lp.trial_num = p->trial_num;
 	read_unlock(&tasklist_lock);
 
 	/*
