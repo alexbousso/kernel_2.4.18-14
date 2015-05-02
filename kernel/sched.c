@@ -13,7 +13,6 @@
  *  		hybrid priority-list and round-robin design with
  *  		an array-switch method of distributing timeslices
  *  		and per-CPU runqueues.  Additional code by Davide
- *  		Libenzi, Robert Love, and Rusty Russell.
  */
 
 #include <linux/mm.h>
@@ -258,7 +257,6 @@ static inline int effective_prio(task_t *p)
 
 static inline void activate_task(task_t *p, runqueue_t *rq)
 {
-	unsigned long sleep_time = jiffies - p->sleep_timestamp;
 	unsigned long sleep_time = jiffies - p->sleep_timestamp;
 	
 	/*shani*/
@@ -875,7 +873,7 @@ pick_next_task:
 	array = rq->active;
 
 	if (unlikely(!array->nr_active)) {
-		if (rp->expired->nr_active){
+		if (rq->expired->nr_active){
 			/*
 			 * Switch the active and expired arrays.
 			 */
@@ -885,7 +883,7 @@ pick_next_task:
 			rq->expired_timestamp = 0;
 		}/*alex shani*/
 		else {
-			if (rp->active_short->nr_active){
+			if (rq->active_short->nr_active){
 				array = rq->active_short;
 			}
 			else array = rq->overdue;
@@ -1202,7 +1200,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	p = find_process_by_pid(pid);
 	
 	/* alex is to blame */
-	if(policy == SCHED_SHORT && p->policy != SCHED_OTHER || policy != SCHED_SHORT && p->policy == SCHED_OTHER){
+	if((policy == SCHED_SHORT && p->policy != SCHED_OTHER) || (policy != SCHED_SHORT && p->policy == SCHED_OTHER)){
 		retval = -EINVAL;
 		goto out_unlock;
 	}

@@ -31,7 +31,7 @@ int remaining_time(int pid) {
  * overdue the function returns 0.
  * If the process is not a SHORT-process, then is returned EINVAL.
  */
-int remaining_trails(int pid) {
+int remaining_trials(int pid) {
 	task_t *p = find_task_by_pid(pid);
 	CHECK_TASK(p);
 	return p->is_overdue ? 0 : p->trial_num;
