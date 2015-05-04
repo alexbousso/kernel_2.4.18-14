@@ -169,13 +169,17 @@ static struct runqueue runqueues[NR_CPUS] __cacheline_aligned;
 # define finish_arch_switch(rq)		spin_unlock_irq(&(rq)->lock)
 #endif
 
+/*shani*/
 void go_to_the_end_of_queue(task_t* p){
-	if(p){
+	if(!p){
 		return;
 	}
-	prio_array_t* array = p->array;
-	dequeue_task(p,array);
-	enqueue_task(p,array);
+	//prio_array_t *array = p->array;
+	//dequeue_task(p,array);
+	//enqueue_task(p,array);
+	struct runqueue *rq = task_rq(p);
+	deactivate_task(p,rq);
+	activate_task(p,rq);
 }
 /*
  * task_rq_lock - lock the runqueue a given task resides on and disable
