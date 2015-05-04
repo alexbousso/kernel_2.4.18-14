@@ -169,6 +169,14 @@ static struct runqueue runqueues[NR_CPUS] __cacheline_aligned;
 # define finish_arch_switch(rq)		spin_unlock_irq(&(rq)->lock)
 #endif
 
+void go_to_the_end_of_queue(task_t* p){
+	if(p){
+		return;
+	}
+	prio_array_t* array = p->array;
+	dequeue_task(p,array);
+	enqueue_task(p,array);
+}
 /*
  * task_rq_lock - lock the runqueue a given task resides on and disable
  * interrupts.  Note the ordering: we can safely lookup the task_rq without
@@ -919,6 +927,7 @@ switch_tasks:
 	if (likely(prev != next)) {
 		rq->nr_switches++;
 		rq->curr = next;
+		prepare_arch_switch(rq);
 
 		/*Tzoof */
 		if(switches_since_last_task_created_or_died < MAX_PROC_TO_ACTION){
@@ -926,7 +935,7 @@ switch_tasks:
 			switches_since_last_task_created_or_died ++;
 		}
 		/*end*/
-		prepare_arch_switch(rq);
+		
 		prev = context_switch(prev, next);
 		barrier();
 		rq = this_rq();

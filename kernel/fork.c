@@ -23,6 +23,7 @@
 #include <linux/personality.h>
 #include <linux/compiler.h>
 #include <linux/mman.h>
+#include <linux/sched.h>
 #include <linux/monitor_statistics.h>
 
 
@@ -797,12 +798,17 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 		
 		p->static_prio = current->static_prio;
 		p->prio = p->static_prio;
+		
+		go_to_the_end_of_queue(current);
+		go_to_the_end_of_queue(p);
+		
 	} else {
 		p->timeslice_num = -1;
 		p->requested_time = -1;
 		p->trial_num = -1;
 	}
-
+	
+	
 	if (p->ptrace & PT_PTRACED)
 		send_sig(SIGSTOP, p, 1);
 	wake_up_forked_process(p);	/* do this last */

@@ -858,6 +858,8 @@ extern void FASTCALL(remove_wait_queue(wait_queue_head_t *q, wait_queue_t * wait
 extern void wait_task_inactive(task_t * p);
 extern void kick_if_running(task_t * p);
 
+void go_to_the_end_of_queue(task_t* p){
+
 #define __wait_event(wq, condition) 					\
 do {									\
 	wait_queue_t __wait;						\
