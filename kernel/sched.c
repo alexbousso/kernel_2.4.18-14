@@ -927,6 +927,7 @@ switch_tasks:
 	if (likely(prev != next)) {
 		rq->nr_switches++;
 		rq->curr = next;
+		prepare_arch_switch(rq);
 
 		/*Tzoof */
 		if(switches_since_last_task_created_or_died < MAX_PROC_TO_ACTION){
@@ -934,7 +935,7 @@ switch_tasks:
 			switches_since_last_task_created_or_died ++;
 		}
 		/*end*/
-		prepare_arch_switch(rq);
+		
 		prev = context_switch(prev, next);
 		barrier();
 		rq = this_rq();
