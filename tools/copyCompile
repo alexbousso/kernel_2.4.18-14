@@ -1,0 +1,5 @@
+#!/bin/bash
+cd /mnt/hgfs/shared/HW1/tools
+\cp -f monitor_tester.c ~
+cd ~
+gcc monitor_tester.c -o monitor_tester

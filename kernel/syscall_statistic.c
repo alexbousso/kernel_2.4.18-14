@@ -17,8 +17,9 @@ int get_scheduling_statistic(struct switch_info* input){
 	if(!input){
 		return -1;
 	}
+
 	if(!finished_one_round){
-		cells_round1 = last_cell - first_cell;
+		cells_round1 = last_cell - first_cell + 1;
 		cells_round2 = 0;
 	}else{
 		cells_round1 = MAX_PROC_ARR_SZ - first_cell;
@@ -27,11 +28,17 @@ int get_scheduling_statistic(struct switch_info* input){
 	size_round1 = (sizeof(struct switch_info))*cells_round1;
 	size_round2 = (sizeof(struct switch_info))*cells_round2;
 
-	copy_to_user (input + first_cell, MonitorArray, size_round1);
-	copy_to_user (input, MonitorArray + size_round1, size_round2);
+	copy_to_user (input, MonitorArray + first_cell, size_round1);
+	copy_to_user (input + cells_round1, MonitorArray, size_round2);
 	//copy_to_user(to, from, size in unsigned long)	
+	
 	if(finished_one_round){
 		return MAX_PROC_ARR_SZ;
 	}
+	
 	return (last_cell - first_cell + 1);
+	
+	//copy_to_user (input, MonitorArray, MAX_PROC_ARR_SZ*sizeof(struct switch_info));
+	//return last - first +1;
+	
 }
