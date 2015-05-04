@@ -1,7 +1,7 @@
 /*
  * sched_tester.c
  *
- *  Created on: 2 Γ‘Γ®Γ Γ© 2015
+ *  Created on: 2 αξΰι 2015
  *      Author: Shani
  */
 
@@ -17,6 +17,22 @@
 #include <stdlib.h>
 #include <limits.h>
 #include "syscall_short.h"
+#include "syscall_statistic.h"
+
+/*struct switch_info{
+	int previous_pid;
+	int next_pid;
+	int previous_policy;
+	int next_policy;
+	unsigned long time;
+	int reason;
+};*/
+
+struct sched_param2 {
+	int sched_priority;
+	int requested_time;
+	int trial_num;
+};
 
 int fibonacci(int n){
 	if (n < 2){
@@ -24,11 +40,7 @@ int fibonacci(int n){
 	}
 	return fibonacci(n-1) + fibonacci(n-2);
 }
-struct sched_param2 {
-	int sched_priority;
-	int requested_time;
-	int trial_num;
-};
+
 
 int main(int argc, char *argv[]) {
 	if (argc % 2 != 1){
@@ -55,12 +67,49 @@ int main(int argc, char *argv[]) {
 			sched_setscheduler(getpid(), 4,(struct sched_param*) &param);
 			fibonacci(n);
 			printf("%d ended!\n", getpid());
-			break;
+			return 0;
 		}
 	}
 
 	for (int i = 1; i < argc; i+=2){
 		wait(0);
 	}
+
+	struct switch_info res[150];
+	int num_procs = get_scheduling_statistic(res);
+
+	printf("i\tprev_pid\tnext_pid\tprev_policy\tnext_policy\ttime\treason\n");
+	for(int i=0; i<num_procs; i++){
+				printf("%d \t %d \t %d \t %d \t %d \t %d \t ", i,
+				res[i].previous_pid, res[i].next_pid, res[i].previous_policy,
+				res[i].next_policy, res[i].time);
+		switch(res[i].reason){
+		case 1:
+			printf("task created\n");
+			break;
+		case 2:
+			printf("task ended\n");
+			break;
+		case 3:
+			printf("task yields\n");
+			break;
+		case 4:
+			printf("short became overdue\n");
+			break;
+		case 5:
+			printf("went to wait\n");
+			break;
+		case 6:
+			printf("return from wait\n");
+			break;
+		case 7:
+			printf("time slice ended\n");
+			break;
+		default:
+			printf("**error**\n");
+			break;
+		}
+	}
+
 	return 0;
 }
