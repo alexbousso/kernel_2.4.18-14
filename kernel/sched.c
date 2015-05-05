@@ -1133,6 +1133,7 @@ void set_user_nice(task_t *p, long nice)
 		if ((NICE_TO_PRIO(nice) < p->static_prio) || (p == rq->curr))
 			resched_task(rq->curr);
 	}
+	reason_for_switch = 6;
 out_unlock:
 	task_rq_unlock(rq, &flags);
 }
@@ -1312,6 +1313,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 		p->requested_time = lp.requested_time;
 		p->trial_num = lp.trial_num;
 		p->time_slice = (lp.requested_time*HZ)/1000;
+		reason_for_switch = 6;
 		if (array)
 			activate_task(p, task_rq(p));
 	}
