@@ -50,7 +50,7 @@ int fibonacci(int n){
 
 
 int main(int argc, char *argv[]) {
-//int main() {
+
 
 	if (argc % 2 != 1){
 		printf("bad arguments num! \n");
@@ -58,8 +58,10 @@ int main(int argc, char *argv[]) {
 	} //should be odd number of arguments
 
 	printf("\nAlex and Tzoof\n");
-
 	printf("\nPid\tNum of trials\t\tn\tThis pid: %d\n", getpid());
+	for(int i=0; i<100; i++){
+		;
+	}
 	for (int i = 1; i < argc; i+=2){
 		char *end1, *end2;
 		long int numOfTrials = strtol(*(argv+i), &end1, 10);
@@ -72,12 +74,15 @@ int main(int argc, char *argv[]) {
 
 		if (fork() == 0){
 			printf("\nI'm forking\n");
-			printf("%lu\t%lu\t%lu\n", getpid(), numOfTrials, n);
+			printf("%d\t%lu\t%lu\n", getpid(), numOfTrials, n);
+			for(int i=0; i<100; i++){
+				;
+			}
 			struct sched_param2 param;
 			param.sched_priority = 0;
-			param.requested_time = 4000; // <-----------------------------------
+			param.requested_time = 2000; // <-----------------------------------
 			param.trial_num = numOfTrials;
-			sched_setscheduler(getpid(), 0,(struct sched_param*) &param);
+			sched_setscheduler(getpid(), 4,(struct sched_param*) &param);
 			fibonacci(n);
 			return 0;
 		}
