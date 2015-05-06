@@ -24,10 +24,17 @@
 	int next_pid;
 	int previous_policy;
 	int next_policy;
-	unsigned long time;
+	int time;
 	int reason;
 };*/
 
+/*
+struct sched_param{
+	int sched_priority;
+	int requested_time;
+	int trial_num;
+};
+*/
 struct sched_param2 {
 	int sched_priority;
 	int requested_time;
@@ -43,13 +50,16 @@ int fibonacci(int n){
 
 
 int main(int argc, char *argv[]) {
+//int main() {
+
 	if (argc % 2 != 1){
 		printf("bad arguments num! \n");
 		return 0;
 	} //should be odd number of arguments
 
+	printf("\nAlex and Tzoof\n");
+
 	printf("\nPid\tNum of trials\t\tn\tThis pid: %d\n", getpid());
-	fflush(stdout);
 	for (int i = 1; i < argc; i+=2){
 		char *end1, *end2;
 		long int numOfTrials = strtol(*(argv+i), &end1, 10);
@@ -61,13 +71,13 @@ int main(int argc, char *argv[]) {
 		}
 
 		if (fork() == 0){
-			printf("%d\t%d\t%d\n", getpid(), numOfTrials, n);
-			fflush(stdout);
+			printf("\nI'm forking\n");
+			printf("%lu\t%lu\t%lu\n", getpid(), numOfTrials, n);
 			struct sched_param2 param;
 			param.sched_priority = 0;
 			param.requested_time = 4000; // <-----------------------------------
 			param.trial_num = numOfTrials;
-			sched_setscheduler(getpid(), 4,(struct sched_param*) &param);
+			sched_setscheduler(getpid(), 0,(struct sched_param*) &param);
 			fibonacci(n);
 			return 0;
 		}
@@ -81,9 +91,8 @@ int main(int argc, char *argv[]) {
 	int num_procs = get_scheduling_statistic(res);
 
 	printf("i\tprev_pid\tnext_pid\tprev_policy\tnext_policy\ttime\treason\n");
-	fflush(stdout);
 	for(int i=0; i<num_procs; i++){
-				printf("%d\t%d\t%d\t%d\t%d\t%d\t", i,
+				printf("%d\t%d\t%d\t%d\t%d\t%lu\t", i,
 				res[i].previous_pid, res[i].next_pid, res[i].previous_policy,
 				res[i].next_policy, res[i].time);
 		switch(res[i].reason){
@@ -112,7 +121,6 @@ int main(int argc, char *argv[]) {
 			printf("**error**\n");
 			break;
 		}
-		fflush(stdout);
 	}
 
 	return 0;
