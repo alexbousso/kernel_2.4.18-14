@@ -48,6 +48,8 @@ int main(int argc, char *argv[]) {
 		return 0;
 	} //should be odd number of arguments
 
+	printf("\nPid\tNum of trials\t\tn\tThis pid: %d\n", getpid());
+	fflush(stdout);
 	for (int i = 1; i < argc; i+=2){
 		char *end1, *end2;
 		long int numOfTrials = strtol(*(argv+i), &end1, 10);
@@ -57,16 +59,16 @@ int main(int argc, char *argv[]) {
 			printf("bad arguments num! \n");
 			return -1;
 		}
-		//printf("trials = %d, n = %d, errno = %d\n", numOfTrials, n, errno);
 
 		if (fork() == 0){
+			printf("%d\t%d\t%d\n", getpid(), numOfTrials, n);
+			fflush(stdout);
 			struct sched_param2 param;
 			param.sched_priority = 0;
-			param.requested_time = 10; // <-----------------------------------
+			param.requested_time = 4000; // <-----------------------------------
 			param.trial_num = numOfTrials;
 			sched_setscheduler(getpid(), 4,(struct sched_param*) &param);
 			fibonacci(n);
-			printf("%d ended!\n", getpid());
 			return 0;
 		}
 	}
@@ -79,8 +81,9 @@ int main(int argc, char *argv[]) {
 	int num_procs = get_scheduling_statistic(res);
 
 	printf("i\tprev_pid\tnext_pid\tprev_policy\tnext_policy\ttime\treason\n");
+	fflush(stdout);
 	for(int i=0; i<num_procs; i++){
-				printf("%d \t %d \t %d \t %d \t %d \t %d \t ", i,
+				printf("%d\t%d\t%d\t%d\t%d\t%d\t", i,
 				res[i].previous_pid, res[i].next_pid, res[i].previous_policy,
 				res[i].next_policy, res[i].time);
 		switch(res[i].reason){
@@ -109,6 +112,7 @@ int main(int argc, char *argv[]) {
 			printf("**error**\n");
 			break;
 		}
+		fflush(stdout);
 	}
 
 	return 0;
