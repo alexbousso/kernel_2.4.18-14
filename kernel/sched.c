@@ -1269,15 +1269,18 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	/* alex is to blame */
 	retval = -EINVAL;
 	if ((policy == SCHED_SHORT) && (lp.trial_num > 50 || lp.trial_num < 1 || lp.requested_time < 1 || lp.requested_time > 5000)){
+		printk("\nline 1272, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
 		goto out_unlock;
 	}
 		
 	if((policy == SCHED_SHORT && p->policy != SCHED_OTHER) || (policy != SCHED_SHORT && p->policy == SCHED_SHORT)){
+		printk("\nline 1277, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
 		retval = -EINVAL;
 		goto out_unlock;
 	}
 	if(p->policy == SCHED_SHORT && policy == SCHED_SHORT){
 		if(lp.trial_num != p->trial_num){
+			printk("\nline 1283, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
 			retval = -EINVAL;
 			goto out_unlock;
 		}
@@ -1295,7 +1298,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	}
 	/* end of change */
 	
-		
+	
 	array = p->array;
 	if (array)
 		deactivate_task(p, task_rq(p));
@@ -1311,6 +1314,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 		
 	/*alex*/
 	if(policy == SCHED_SHORT){
+		printk("\nline 1317, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
 		p->timeslice_num = 1;
 		p->is_overdue = 0;
 		p->rt_priority = 0;
