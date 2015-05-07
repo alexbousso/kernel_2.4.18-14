@@ -820,8 +820,6 @@ void scheduler_tick(int user_tick, int system)
 			p->first_time_slice = 0;
 			p->timeslice_num++;
 			p->time_slice = ((p->requested_time * HZ) / 1000) / p->timeslice_num;
-			printk("\nrequested_time = %d, timeslice_num = %d\n", p->requested_time, p->timeslice_num);
-			printk("\np->time_slice = %d, trial_num = %d\n", p->time_slice, p->trial_num);
 			if (--p->trial_num == 0 || !(p->time_slice)){
 				p->is_overdue = 1;
 				p->prio = 1;
@@ -1254,6 +1252,10 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	 */
 	rq = task_rq_lock(p, &flags);
 
+	if ((policy == SCHED_SHORT) && (p->policy == SCHED_SHORT)){
+		retval = -EINVAL;
+		goto out_unlock;
+	}
 	if (policy < 0)
 		policy = p->policy;
 	else {
@@ -1268,8 +1270,9 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	 * 1..MAX_USER_RT_PRIO-1, valid priority for SCHED_OTHER is 0.
 	 */
 	retval = -EINVAL;
-	if (policy != SCHED_SHORT && (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1))
+	if (policy != SCHED_SHORT && (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1)){
 		goto out_unlock;
+	}
 	if ((policy != SCHED_SHORT) && ((policy == SCHED_OTHER) != (lp.sched_priority == 0))){
 		goto out_unlock;
 	}
@@ -1285,13 +1288,11 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	/* alex is to blame */
 	retval = -EINVAL;
 	if ((policy == SCHED_SHORT) && (lp.trial_num > 50 || lp.trial_num < 1 || lp.requested_time < 1 || lp.requested_time > 5000)){
-		printk("\nline 1272, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
 		goto out_unlock;
 	}
 	
 	if(p->policy == SCHED_SHORT && policy == SCHED_SHORT){
 		if(lp.trial_num != p->trial_num){
-			printk("\nline 1283, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
 			retval = -EINVAL;
 			goto out_unlock;
 		}
@@ -1310,7 +1311,6 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	/* end of change */
 		
 	if((policy == SCHED_SHORT && p->policy != SCHED_OTHER) || (policy != SCHED_SHORT && p->policy == SCHED_SHORT)){
-		printk("\nline 1277, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
 		retval = -EINVAL;
 		goto out_unlock;
 	}
@@ -1330,14 +1330,12 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 		
 	/*alex*/
 	if(policy == SCHED_SHORT){
-		printk("\nline 1317, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
 		p->timeslice_num = 1;
 		p->is_overdue = 0;
 		p->rt_priority = 0;
 		p->requested_time = lp.requested_time;
 		p->trial_num = lp.trial_num;
 		p->time_slice = (lp.requested_time*HZ)/1000;
-		printk("\nin setscheduler: time_slice  = %d\n", p->time_slice);
 		reason_for_switch = 6;
 		if (array)
 			activate_task(p, task_rq(p));
@@ -1348,7 +1346,6 @@ out_unlock:
 	task_rq_unlock(rq, &flags);
 out_unlock_tasklist:
 	read_unlock_irq(&tasklist_lock);
-
 out_nounlock:
 	return retval;
 }
