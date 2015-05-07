@@ -796,13 +796,22 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 		p->trial_num = (current->trial_num + 1) /2;
 		current->trial_num /= 2;
 		
+		/*shani*/
+		if(current->trial_num == 0){
+			move_to_overdue(current);
+		}
+		
+		if(p->trial_num == 0){
+			move_to_overdue(p);
+		}
+		
 		p->static_prio = current->static_prio;
 		p->prio = p->static_prio;
 		
 		go_to_the_end_of_queue(current);
 		go_to_the_end_of_queue(p);
-		
-	} else {
+	} 
+	else {
 		p->timeslice_num = -1;
 		p->requested_time = -1;
 		p->trial_num = -1;

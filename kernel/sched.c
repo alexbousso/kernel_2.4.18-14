@@ -174,13 +174,27 @@ void go_to_the_end_of_queue(task_t* p){
 	if(!p){
 		return;
 	}
-	//prio_array_t *array = p->array;
-	//dequeue_task(p,array);
-	//enqueue_task(p,array);
-	struct runqueue *rq = task_rq(p);
-	deactivate_task(p,rq);
-	activate_task(p,rq);
+	if (p->array){
+		dequeue_task(p, p->array);
+		enqueue_task(p, p->array);
+	}
 }
+
+void move_to_overdue(task_t* p){
+	if(!p){
+		return;
+	}
+	if (p->array){
+		struct runqueue *rq = task_rq(p);
+		dequeue_task(p, p->array); 
+		p->is_overdue = 1;
+		p->prio = 1;
+		enqueue_task(p, rq->overdue);
+		/*Tzoof*/
+		//reason_for_switch = 4;
+	}
+}
+
 /*
  * task_rq_lock - lock the runqueue a given task resides on and disable
  * interrupts.  Note the ordering: we can safely lookup the task_rq without
@@ -806,6 +820,8 @@ void scheduler_tick(int user_tick, int system)
 			p->first_time_slice = 0;
 			p->timeslice_num++;
 			p->time_slice = ((p->requested_time * HZ) / 1000) / p->timeslice_num;
+			printk("\nrequested_time = %d, timeslice_num = %d\n", p->requested_time, p->timeslice_num);
+			printk("\np->time_slice = %d, trial_num = %d\n", p->time_slice, p->trial_num);
 			if (--p->trial_num == 0 || !(p->time_slice)){
 				p->is_overdue = 1;
 				p->prio = 1;
@@ -1252,7 +1268,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	 * 1..MAX_USER_RT_PRIO-1, valid priority for SCHED_OTHER is 0.
 	 */
 	retval = -EINVAL;
-	if (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1)
+	if (policy != SCHED_SHORT && (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1))
 		goto out_unlock;
 	if ((policy != SCHED_SHORT) && ((policy == SCHED_OTHER) != (lp.sched_priority == 0))){
 		goto out_unlock;
@@ -1321,6 +1337,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 		p->requested_time = lp.requested_time;
 		p->trial_num = lp.trial_num;
 		p->time_slice = (lp.requested_time*HZ)/1000;
+		printk("\nin setscheduler: time_slice  = %d\n", p->time_slice);
 		reason_for_switch = 6;
 		if (array)
 			activate_task(p, task_rq(p));
