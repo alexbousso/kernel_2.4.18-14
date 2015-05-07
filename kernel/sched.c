@@ -1288,12 +1288,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 		printk("\nline 1272, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
 		goto out_unlock;
 	}
-		
-	if((policy == SCHED_SHORT && p->policy != SCHED_OTHER) || (policy != SCHED_SHORT && p->policy == SCHED_SHORT)){
-		printk("\nline 1277, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
-		retval = -EINVAL;
-		goto out_unlock;
-	}
+	
 	if(p->policy == SCHED_SHORT && policy == SCHED_SHORT){
 		if(lp.trial_num != p->trial_num){
 			printk("\nline 1283, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
@@ -1313,7 +1308,12 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 		goto out_unlock;
 	}
 	/* end of change */
-	
+		
+	if((policy == SCHED_SHORT && p->policy != SCHED_OTHER) || (policy != SCHED_SHORT && p->policy == SCHED_SHORT)){
+		printk("\nline 1277, policy = %d, p->policy = %d, trial_num = %d, requested_time = %d\n", policy, p->policy, lp.trial_num, lp.requested_time);
+		retval = -EINVAL;
+		goto out_unlock;
+	}
 	
 	array = p->array;
 	if (array)
