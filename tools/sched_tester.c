@@ -57,8 +57,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	} //should be odd number of arguments
 
-	printf("\nAlex and Tzoof\n");
-	printf("\nPid\tNum of trials\t\tn\tThis pid: %d\n", getpid());
+
 	for(int i=0; i<100; i++){
 		;
 	}
@@ -73,14 +72,9 @@ int main(int argc, char *argv[]) {
 		}
 
 		if (fork() == 0){
-			printf("\nI'm forking\n");
-			printf("%d\t%lu\t%lu\n", getpid(), numOfTrials, n);
-			for(int i=0; i<100; i++){
-				;
-			}
 			struct sched_param2 param;
 			param.sched_priority = 0;
-			param.requested_time = 2000; // <-----------------------------------
+			param.requested_time = 2000;
 			param.trial_num = numOfTrials;
 			sched_setscheduler(getpid(), 4,(struct sched_param*) &param);
 			fibonacci(n);
