@@ -16,25 +16,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include "syscall_short.h"
-#include "syscall_statistic.h"
+#include "hw2_syscalls.h"
 
-/*struct switch_info{
-	int previous_pid;
-	int next_pid;
-	int previous_policy;
-	int next_policy;
-	int time;
-	int reason;
-};*/
-
-/*
-struct sched_param{
-	int sched_priority;
-	int requested_time;
-	int trial_num;
-};
-*/
 struct sched_param2 {
 	int sched_priority;
 	int requested_time;
@@ -47,7 +30,6 @@ int fibonacci(int n){
 	}
 	return fibonacci(n-1) + fibonacci(n-2);
 }
-
 
 int main(int argc, char *argv[]) {
 
@@ -124,3 +106,4 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
+
